@@ -32,6 +32,10 @@
 @property (retain, nonatomic) IBOutlet UITextField *addressField;
 @property (assign, nonatomic) BOOL backOrForwardPressed;
 
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *saveButton;
+@property (retain, nonatomic) IBOutlet UIBarButtonItem *cancelButton;
+@property (retain, nonatomic) UIBarButtonItem *activityIndicatorButtonItem;
+
 -(void)showAddressBar;
 -(void)hideAddressBar;
 
@@ -42,6 +46,9 @@
 @synthesize addressBar;
 @synthesize addressField;
 @synthesize backOrForwardPressed;
+@synthesize saveButton;
+@synthesize cancelButton;
+@synthesize activityIndicatorButtonItem;
 
 @synthesize webView;
 @synthesize delegate;
@@ -91,6 +98,8 @@
 
     [addressBar release];
     [addressBar release];
+	[saveButton release];
+	[cancelButton release];
     [super dealloc];
 }
 
@@ -155,7 +164,12 @@
     NSMutableArray *toolbarButtons = [[NSMutableArray alloc] initWithObjects:self.backButton, flexibleSpace, self.forwardButton, 
                                       flexibleSpace, self.reloadButton, flexibleSpace, self.actionButton, nil];
     
-    if([activityIndicator isAnimating]) [toolbarButtons replaceObjectAtIndex:4 withObject:self.stopButton];
+    if([activityIndicator isAnimating]){
+		[toolbarButtons replaceObjectAtIndex:4 withObject:self.stopButton];
+		self.navigationItem.rightBarButtonItem = self.activityIndicatorButtonItem;
+	}else{
+		self.navigationItem.rightBarButtonItem = self.saveButton;
+	}
     
     [self.toolbar setItems:toolbarButtons animated:YES];
     [toolbarButtons release];
@@ -209,8 +223,13 @@
         [self showAddressBar];
     }
 	
+	// Add the save/cancel buttons
+	self.navigationItem.rightBarButtonItem = self.saveButton;
+	self.navigationItem.leftBarButtonItem = self.cancelButton;
+	
     self.webView.scalesPageToFit = YES;
-    self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithCustomView:activityIndicator] autorelease];
+	self.activityIndicatorButtonItem = [[[UIBarButtonItem alloc] initWithCustomView:activityIndicator] autorelease];
+    self.navigationItem.rightBarButtonItem = self.activityIndicatorButtonItem;
     
     [self.webView loadRequest:[NSURLRequest requestWithURL:self.url]];
     [self updateToolbar];
@@ -222,6 +241,8 @@
     [[self navigationItem] setRightBarButtonItem:nil];
     [self setAddressField:nil];
     [self setAddressBar:nil];
+	[self setSaveButton:nil];
+	[self setCancelButton:nil];
     [super viewDidUnload];
 }
 
@@ -330,6 +351,15 @@
     
     [uias showInView:self.view];
     [uias release];
+}
+
+- (IBAction)cancelButtonPressed:(id)sender {
+	[self.delegate browserDidSelectCancel:self];
+}
+
+- (IBAction)saveButtonPressed:(id)sender {
+	[self.delegate browser:self
+			  didSelectURL:self.url];
 }
 
 
