@@ -26,7 +26,22 @@
 
 #import "BrowserViewController.h"
 
+@interface BrowserViewController ()
+
+@property (retain, nonatomic) IBOutlet UIToolbar *addressBar;
+@property (retain, nonatomic) IBOutlet UITextField *addressField;
+@property (assign, nonatomic) BOOL backOrForwardPressed;
+
+-(void)showAddressBar;
+-(void)hideAddressBar;
+
+@end
+
 @implementation BrowserViewController
+
+@synthesize addressBar;
+@synthesize addressField;
+@synthesize backOrForwardPressed;
 
 @synthesize webView;
 @synthesize url;
@@ -36,7 +51,7 @@
 @synthesize stopButton;
 @synthesize reloadButton;
 @synthesize actionButton;
-
+@synthesize addressBarVisible;
 
 /**********************************************************************************************************************/
 #pragma mark - UIActionSheet Delegate
@@ -73,6 +88,8 @@
     [reloadButton release];
     [actionButton release];
 
+    [addressBar release];
+    [addressBar release];
     [super dealloc];
 }
 
@@ -147,6 +164,10 @@
     NSString *pageTitle = [self.webView stringByEvaluatingJavaScriptFromString:@"document.title"];
     if(pageTitle) [[self navigationItem] setTitle:pageTitle];
     
+    // URL
+    if(![self.addressField isFirstResponder]){
+        self.addressField.text = [self.url absoluteString];
+    }
     
     // If there is a navigation controller, take up the same style for the toolbar.
     if (self.navigationController) {
@@ -182,6 +203,11 @@
 {
     [super viewDidLoad];
     
+    // Show the address bar
+    if(self.addressBarVisible){
+        [self showAddressBar];
+    }
+	
     self.webView.scalesPageToFit = YES;
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithCustomView:activityIndicator] autorelease];
     
@@ -193,6 +219,8 @@
 - (void)viewDidUnload
 {
     [[self navigationItem] setRightBarButtonItem:nil];
+    [self setAddressField:nil];
+    [self setAddressBar:nil];
     [super viewDidUnload];
 }
 
@@ -205,20 +233,72 @@
             || interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
 }
 
+/**********************************************************************************************************************/
+#pragma mark - Address Bar Visibility
 
+-(void)showAddressBar{
+    // Make the address bar visible (if it isn't already)
+    if([self.addressBar superview] != self.view){
+        
+        [self.view addSubview:self.addressBar];
+        
+        // Resize the webview if it is now overlapped by the address bar
+        CGRect overlap = CGRectIntersection(self.webView.frame, self.addressBar.frame);
+        
+        if(!CGRectIsNull(overlap)){
+            
+            CGRect slice;
+            CGRect remainder;
+            CGRectDivide(self.webView.frame, &slice, &remainder, overlap.size.height, CGRectMinYEdge);
+            
+            self.webView.frame = remainder;
+        }
+    }
+}
+
+-(void)hideAddressBar{
+    // Hide the address bar (if it is visible)
+    if([self.addressBar superview] == self.view){
+        [self.addressBar removeFromSuperview];
+        
+        CGFloat barHeight = self.addressBar.bounds.size.height;
+        
+        CGRect frame = CGRectMake(0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height + barHeight);
+        
+        self.webView.frame = frame;
+    }
+}
+
+-(void)setAddressBarVisible:(BOOL)visible{
+    addressBarVisible = visible;
+    
+    if(visible){
+        [self showAddressBar];
+        
+    }else{
+        [self hideAddressBar];
+    }
+}
 /**********************************************************************************************************************/
 #pragma mark - User Interaction
 
 
 - (void)backButtonPressed:(id)sender
 {
-    if([self.webView canGoBack]) [self.webView goBack];
+    if([self.webView canGoBack]){
+        self.backOrForwardPressed = YES;
+        [self.webView goBack];
+    }
 }
 
 
 - (void)forwardButtonPressed:(id)sender
 {
-    if([self.webView canGoForward]) [self.webView goForward];
+    if([self.webView canGoForward]){
+		self.backOrForwardPressed = YES;
+		[self.webView goForward];
+		self.url = self.webView.request.URL;
+    };
 }
 
 
@@ -255,6 +335,19 @@
 /**********************************************************************************************************************/
 #pragma mark - WebView Delegate
 
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{
+    
+    // Update the url if the user tapped on a URL
+    // or if this is the first request after pressing back or forward
+    if(navigationType == UIWebViewNavigationTypeLinkClicked ||
+       (navigationType == UIWebViewNavigationTypeBackForward && self.backOrForwardPressed)){
+        self.url = request.URL;
+        self.backOrForwardPressed = NO;
+    }
+    
+    return YES;
+}
+
 
 - (void)webViewDidStartLoad:(UIWebView *)webView
 {
@@ -275,5 +368,17 @@
     [self updateToolbar];
 }
 
+#pragma mark - UITextFieldDelegate Methods
+
+-(BOOL)textFieldShouldReturn:(UITextField *)textField{
+    
+    self.url = [NSURL URLWithString:textField.text];
+    
+    [self.webView loadRequest:[NSURLRequest requestWithURL:self.url]];
+    
+    [textField resignFirstResponder];
+    
+    return YES;
+}
 
 @end

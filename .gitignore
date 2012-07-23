@@ -1,0 +1,20 @@
+.DS_Store
+*.swp
+*~.nib
+
+build/
+
+*.pbxuser
+*.perspective
+*.perspectivev3
+
+
+# "user-specific project settings".
+
+*.mode1v3
+*.mode2v3
+
+
+#Xcode 4 User Data
+
+xcuserdata

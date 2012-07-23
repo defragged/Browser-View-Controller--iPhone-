@@ -38,7 +38,8 @@
 @interface BrowserViewController : UIViewController 
 <
 UIWebViewDelegate,
-UIActionSheetDelegate
+UIActionSheetDelegate,
+UITextFieldDelegate
 >
 {
     // the current URL of the UIWebView
@@ -69,6 +70,8 @@ UIActionSheetDelegate
 @property(nonatomic, retain) UIBarButtonItem *stopButton;
 @property(nonatomic, retain) UIBarButtonItem *reloadButton;
 @property(nonatomic, retain) UIBarButtonItem *actionButton;
+
+@property(nonatomic, assign, getter = isAddressBarVisible) BOOL addressBarVisible;
 
 // Initializes the BrowserViewController with a specific URL 
 - (id)initWithUrls:(NSURL*)u;
