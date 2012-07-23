@@ -97,9 +97,8 @@
     [actionButton release];
 
     [addressBar release];
-    [addressBar release];
-	[saveButton release];
-	[cancelButton release];
+    [saveButton release];
+    [cancelButton release];
     [super dealloc];
 }
 
