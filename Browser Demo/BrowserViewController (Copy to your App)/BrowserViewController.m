@@ -164,10 +164,15 @@
     NSMutableArray *toolbarButtons = [[NSMutableArray alloc] initWithObjects:self.backButton, flexibleSpace, self.forwardButton, 
                                       flexibleSpace, self.reloadButton, flexibleSpace, self.actionButton, nil];
     
+	// Show the cancel button if there's a delegate to respond to it being pressed
+	self.navigationItem.leftBarButtonItem = self.delegate ? self.cancelButton : nil;
+	
     if([activityIndicator isAnimating]){
+		
 		[toolbarButtons replaceObjectAtIndex:4 withObject:self.stopButton];
 		self.navigationItem.rightBarButtonItem = self.activityIndicatorButtonItem;
-	}else{
+	
+	}else if(self.delegate){
 		self.navigationItem.rightBarButtonItem = self.saveButton;
 	}
     
@@ -222,10 +227,6 @@
     if(self.addressBarVisible){
         [self showAddressBar];
     }
-	
-	// Add the save/cancel buttons
-	self.navigationItem.rightBarButtonItem = self.saveButton;
-	self.navigationItem.leftBarButtonItem = self.cancelButton;
 	
     self.webView.scalesPageToFit = YES;
 	self.activityIndicatorButtonItem = [[[UIBarButtonItem alloc] initWithCustomView:activityIndicator] autorelease];
