@@ -44,6 +44,7 @@
 @synthesize backOrForwardPressed;
 
 @synthesize webView;
+@synthesize delegate;
 @synthesize url;
 @synthesize toolbar;
 @synthesize forwardButton;

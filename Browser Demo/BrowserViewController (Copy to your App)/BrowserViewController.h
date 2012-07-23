@@ -27,6 +27,8 @@
 #import <UIKit/UIKit.h>
 #import "MyApplication.h"
 
+@protocol BrowserViewControllerDelegate;
+
 // The names of the images for the 'back' and 'forward' buttons in the toolbar.
 #define PNG_BUTTON_FORWARD @"right.png"
 #define PNG_BUTTON_BACK @"left.png"
@@ -64,6 +66,7 @@ UITextFieldDelegate
 
 @property(nonatomic, retain) NSURL *url;
 @property(nonatomic, retain) UIWebView *webView;
+@property(nonatomic, assign) id<BrowserViewControllerDelegate> delegate;
 @property(nonatomic, retain) UIToolbar *toolbar;
 @property(nonatomic, retain) UIBarButtonItem *backButton;
 @property(nonatomic, retain) UIBarButtonItem *forwardButton;
@@ -75,5 +78,12 @@ UITextFieldDelegate
 
 // Initializes the BrowserViewController with a specific URL 
 - (id)initWithUrls:(NSURL*)u;
+
+@end
+
+@protocol BrowserViewControllerDelegate <NSObject>
+
+-(void)browser:(BrowserViewController*)browser didSelectURL:(NSURL*)url;
+-(void)browserDidSelectCancel:(BrowserViewController*)browser;
 
 @end
