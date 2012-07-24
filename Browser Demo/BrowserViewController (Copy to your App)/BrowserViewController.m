@@ -395,7 +395,27 @@
 
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
-{    
+{
+    NSString *alertTitle = NSLocalizedStringWithDefaultValue(@"LoadErrorTitle",
+                                                             @"BrowserViewController",
+                                                             [NSBundle mainBundle],
+                                                             @"Couldn't Load Page",
+                                                             @"Title of error alert displayed when a page couldn't be loaded");
+    
+    NSString *cancelTitle = NSLocalizedStringWithDefaultValue(@"LoadErrorDismissTitle",
+                                                              @"BrowserViewController",
+                                                              [NSBundle mainBundle],
+                                                              @"Dismiss",
+                                                              @"Text for button to dismiss error alert");
+    
+    UIAlertView *alert = [[UIAlertView alloc]initWithTitle:alertTitle
+                                                   message:[error localizedDescription]
+                                                  delegate:nil
+                                         cancelButtonTitle:cancelTitle
+                                         otherButtonTitles:nil];
+    
+    [alert show];
+    
     [self updateToolbar];
 }
 
@@ -403,10 +423,23 @@
 
 -(BOOL)textFieldShouldReturn:(UITextField *)textField{
     
+    // Make a URL from the text entered
+    NSURL *enteredURL = [NSURL URLWithString:textField.text];
+    
+    // If the URL entered by the user is missing a protocol, add http://
+    if(!enteredURL.scheme){
+        NSString *newURLString = [NSString stringWithFormat:@"http://%@", textField.text];
+        self.addressField.text = newURLString;
+        enteredURL = [NSURL URLWithString:newURLString];
+    }
+    
+    // Make the new URL the current one
     self.url = [NSURL URLWithString:textField.text];
     
+    // Load the entered URL
     [self.webView loadRequest:[NSURLRequest requestWithURL:self.url]];
     
+    // Dismiss the keyboard
     [textField resignFirstResponder];
     
     return YES;
